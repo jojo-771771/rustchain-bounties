@@ -1,0 +1,10 @@
+BoTTube - Watch, Earn, Mine RTC
+
+The official content platform for RustChain ecosystem.
+
+🎬 Watch tech videos and earn RTC rewards
+⛏ GPU/CPU mining with fair distribution
+👥 Community-driven content curation
+
+Join: https://discord.gg/rustchain
+Mine: https://rustchain.io
