@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RustChain Miner Setup Wizard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { text-align: center; padding: 30px 0; }
+        .header h1 { font-size: 2rem; color: #00d4ff; margin-bottom: 10px; }
+        .wizard-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .step { display: none; }
+        .step.active { display: block; }
+        h2 { color: #00d4ff; margin-bottom: 15px; }
+        .btn {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: #1a1a2e;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            margin-right: 10px;
+        }
+        .command-box {
+            background: #0d1117;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+        .command-box pre {
+            color: #7ee787;
+            font-family: monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+        .info-box {
+            background: rgba(0, 212, 255, 0.1);
+            border-left: 3px solid #00d4ff;
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 20px 0;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 1rem;
+            margin: 10px 0;
+        }
+        .seed-box {
+            background: #0d1117;
+            border: 2px dashed #00d4ff;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .words {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .word {
+            background: rgba(0, 212, 255, 0.1);
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⛏️ RustChain Miner Setup Wizard</h1>
+            <p>Browser-based installation guide</p>
+        </div>
+        
+        <div class="wizard-card">
+            <!-- Step 1: Platform -->
+            <div class="step active" id="step1">
+                <h2>🔍 Step 1: Platform Detection</h2>
+                <div class="info-box">
+                    <strong>Detected:</strong> <span id="platform">Detecting...</span>
+                </div>
+                <button class="btn" onclick="nextStep()">Continue</button>
+            </div>
+            
+            <!-- Step 2: Python -->
+            <div class="step" id="step2">
+                <h2>🐍 Step 2: Python Check</h2>
+                <p>Run this command to check Python:</p>
+                <div class="command-box"><pre>python3 --version</pre></div>
+                <p>Install if needed:</p>
+                <div class="command-box"><pre id="install-cmd"># See below for OS-specific commands</pre></div>
+                <button class="btn" onclick="nextStep()">Continue</button>
+            </div>
+            
+            <!-- Step 3: Wallet -->
+            <div class="step" id="step3">
+                <h2>👛 Step 3: Wallet Setup</h2>
+                <button class="btn" onclick="generateWallet()">Generate Wallet</button>
+                <div id="wallet-area" style="display:none;">
+                    <div class="seed-box">
+                        <strong>Save these 12 words:</strong>
+                        <div class="words" id="seed-words"></div>
+                    </div>
+                    <input type="text" id="wallet-name" placeholder="Enter wallet name">
+                </div>
+                <button class="btn" onclick="nextStep()" id="wallet-next" disabled>Continue</button>
+            </div>
+            
+            <!-- Step 4: Download -->
+            <div class="step" id="step4">
+                <h2>⬇️ Step 4: Download Miner</h2>
+                <div class="command-box"><pre>pip3 install clawrtc</pre></div>
+                <button class="btn" onclick="nextStep()">Continue</button>
+            </div>
+            
+            <!-- Step 5: Configure -->
+            <div class="step" id="step5">
+                <h2>⚙️ Step 5: Configure</h2>
+                <input type="text" id="node-url" value="https://50.28.86.131" placeholder="Node URL">
+                <div class="command-box"><pre id="mine-cmd">clawrtc mine --wallet YOUR_NAME</pre></div>
+                <button class="btn" onclick="nextStep()">Continue</button>
+            </div>
+            
+            <!-- Step 6: Test -->
+            <div class="step" id="step6">
+                <h2>🌐 Step 6: Test Connection</h2>
+                <button class="btn" onclick="testConnection()">Test Node</button>
+                <div id="test-result"></div>
+                <button class="btn" onclick="nextStep()">Continue</button>
+            </div>
+            
+            <!-- Step 7: Mine -->
+            <div class="step" id="step7">
+                <h2>⛏️ Step 7: Start Mining!</h2>
+                <div class="info-box">
+                    <strong>Ready!</strong> Run your miner:
+                </div>
+                <div class="command-box"><pre id="final-cmd">clawrtc mine --wallet YOUR_NAME</pre></div>
+                <p>Verify at: <a href="https://50.28.86.131/explorer" style="color:#00d4ff;">Explorer</a></p>
+                <button class="btn" onclick="location.reload()">Start Over</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let step = 1;
+        let wallet = null;
+        
+        // Detect platform
+        const ua = navigator.userAgent;
+        let os = 'Linux';
+        if (ua.includes('Win')) os = 'Windows';
+        else if (ua.includes('Mac')) os = 'macOS';
+        document.getElementById('platform').textContent = os + ' (' + navigator.platform + ')';
+        
+        // Python install commands
+        let installCmd = '';
+        if (os === 'macOS') installCmd = 'brew install python3';
+        else if (os === 'Linux') installCmd = 'sudo apt install python3 python3-pip';
+        else installCmd = '# Download from python.org';
+        document.getElementById('install-cmd').textContent = installCmd;
+        
+        function nextStep() {
+            document.getElementById('step' + step).classList.remove('active');
+            step++;
+            document.getElementById('step' + step).classList.add('active');
+            
+            if (step === 5 && wallet) {
+                document.getElementById('mine-cmd').textContent = 
+                    'clawrtc mine --wallet ' + document.getElementById('wallet-name').value;
+            }
+            if (step === 7 && wallet) {
+                document.getElementById('final-cmd').textContent = 
+                    'clawrtc mine --wallet ' + document.getElementById('wallet-name').value;
+            }
+        }
+        
+        function generateWallet() {
+            const words = ['abandon', 'ability', 'able', 'about', 'above', 'absent', 
+                          'absorb', 'abstract', 'absurd', 'abuse', 'access', 'accident'];
+            const shuffled = words.sort(() => 0.5 - Math.random());
+            wallet = { words: shuffled, name: 'miner-' + Math.random().toString(36).substr(2, 8) };
+            
+            document.getElementById('seed-words').innerHTML = 
+                shuffled.map((w, i) => `<div class="word">${i+1}. ${w}</div>`).join('');
+            document.getElementById('wallet-area').style.display = 'block';
+            document.getElementById('wallet-name').value = wallet.name;
+            document.getElementById('wallet-next').disabled = false;
+        }
+        
+        async function testConnection() {
+            const result = document.getElementById('test-result');
+            result.innerHTML = '<div class="info-box">Testing...</div>';
+            try {
+                await fetch('https://50.28.86.131/health', { mode: 'no-cors' });
+                result.innerHTML = '<div class="info-box" style="background:rgba(0,255,136,0.1);border-color:#00ff88;">Node appears online!</div>';
+            } catch {
+                result.innerHTML = '<div class="info-box" style="background:rgba(255,170,0,0.1);border-color:#ffaa00;">CORS blocked - try curl command</div>';
+            }
+        }
+    </script>
+</body>
+</html>
